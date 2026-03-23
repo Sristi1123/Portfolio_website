@@ -533,3 +533,61 @@ style.textContent = `
   }
 `;
 document.head.appendChild(style);
+
+// ==========================================
+// RESUME PDF GENERATOR
+// ==========================================
+document.getElementById('downloadResumeBtn').addEventListener('click', (e) => {
+  e.preventDefault();
+  
+  const btn = e.currentTarget;
+  const originalHtml = btn.innerHTML;
+  btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Loading PDF...';
+  
+  // Create window immediately to avoid popup blockers
+  const newWin = window.open('', '_blank');
+  
+  if (newWin) {
+    newWin.document.body.innerHTML = '<h3 style="font-family:sans-serif; text-align:center; color:#333; margin-top:50px;">Generating PDF...</h3>';
+  }
+
+  const img = new Image();
+  img.crossOrigin = "Anonymous";
+  img.src = 'Pics/Sristi_Resume.png';
+  document.getElementById('downloadResumeBtn').addEventListener('click', (e) => {
+  e.preventDefault();
+  window.open('SristiCV.pdf', '_blank');
+});
+  img.onload = () => {
+    try {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({
+        orientation: img.width > img.height ? 'l' : 'p',
+        unit: 'px',
+        format: [img.width, img.height]
+      });
+      
+      doc.addImage(img, 'PNG', 0, 0, img.width, img.height);
+      const blobUrl = doc.output('bloburl');
+      
+      if (newWin) {
+        newWin.location.href = blobUrl;
+      } else {
+        // Fallback: If popup was blocked, force a direct download
+        doc.save('Sristi_Resume.pdf');
+      }
+    } catch(err) {
+      if(newWin) newWin.close();
+      console.error("PDF Generation error:", err);
+      alert('Failed to generate PDF. Please try again.');
+    } finally {
+      btn.innerHTML = originalHtml;
+    }
+  };
+  
+  img.onerror = () => {
+    if(newWin) newWin.close();
+    alert('Failed to load resume image.');
+    btn.innerHTML = originalHtml;
+  };
+});
